@@ -1,9 +1,9 @@
-#include "raylib.h"
 #include <iostream>
+#include <raylib.h>
 #include <stdio.h>
 #include <vector>
 
-int main(void) {
+int main(int argc, char **argv) {
 
   const int screenWidth = 800;
   const int screenHeight = 450;
