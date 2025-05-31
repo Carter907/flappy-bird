@@ -19,13 +19,11 @@ int main() {
     Texture2D backgroundTexture = LoadTextureFromImage(backgroundImg);
     Texture2D pipeTexture = LoadTextureFromImage(pipeImg);
 
-    int score = 0;
-    int best_score = 0;
-    bool restart = false;
     char scoreText[30];
     char bestScoreText[30];
 
-    const auto bird = new Bird(birdTexture);
+    Game * game = new Game();
+    Bird * bird = new Bird(birdTexture);
 
     std::vector<Rectangle> pipes;
 
@@ -39,22 +37,10 @@ int main() {
 
         DrawTextureEx(backgroundTexture, Vector2{0, -150}, 0, 0.8, WHITE);
 
-        if (restart) {
-            best_score = std::max(score, best_score);
-            score = 0;
-            bird->die();
 
-            pipes.clear();
-
-            for (int i = 0; i < MAX_PIPES; i++) {
-                pipes.push_back(getRandomOpening(i));
-            }
-
-            restart = false;
+        if (bird->update()) {
+            game->restart(bird, pipes);
         }
-        bird->update(restart);
-
-
         bird->draw();
 
 
@@ -62,10 +48,10 @@ int main() {
             auto [x, y, width, height] = pipe;
 
             if (BIRD_START_X + birdTexture.width * 0.15 >= x && BIRD_START_X <= x + width) {
-                if (bird->get_y_pos() < y ||
-                    bird->get_y_pos() + birdTexture.height * 0.15 >
+                if (bird->y_pos < y ||
+                    bird->y_pos + birdTexture.height * 0.15 >
                     y + height) {
-                    restart = true;
+                    game->restart(bird, pipes);
                     continue;
                 }
             }
@@ -92,7 +78,7 @@ int main() {
 
 
         if (pipes.front().x + OPENING_WIDTH < 0) {
-            score++;
+            game->score++;
 
             pipes.erase(pipes.begin());
             const int prev_x = pipes.back().x;
@@ -106,8 +92,8 @@ int main() {
             pipes.push_back(ran_pipe_opening);
         }
 
-        sprintf(scoreText, "score: %d", score);
-        sprintf(bestScoreText, "best: %d", best_score);
+        sprintf(scoreText, "score: %d", game->score);
+        sprintf(bestScoreText, "best: %d", game->best_score);
 
         DrawTextEx(fnt, scoreText, Vector2{0, 0}, 30, 0, GREEN);
         DrawTextEx(fnt, bestScoreText,

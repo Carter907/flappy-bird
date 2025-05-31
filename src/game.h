@@ -2,6 +2,9 @@
 #define GAME_H
 
 #include <raylib.h>
+#include <vector>
+
+#include "bird.h"
 
 // amount of pipes in pipes vector
 #define MAX_PIPES 5
@@ -24,10 +27,9 @@
 #define PIPE_PADDING 500
 
 struct Game {
-  int score = 0;
-  int best_score = 0;
-
-  void reset();
+    int score = 0;
+    int best_score = 0;
+    void restart(Bird *bird, std::vector<Rectangle> &pipes);
 };
 
 // precondition: The index of the pipe on initialization of pipes vector
