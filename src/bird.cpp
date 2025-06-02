@@ -14,7 +14,7 @@ bool Bird::update() {
   y_pos = y_pos - delta_v;
   if (IsKeyPressed(KEY_SPACE)) {
     if (velocity < 40) {
-      velocity = FLAP_VELOCITY;
+      flap();
     }
   }
   return false;

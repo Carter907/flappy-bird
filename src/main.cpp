@@ -12,6 +12,7 @@
 
 
 int main() {
+
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "flappybird!");
     SetWindowMaxSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     SetTargetFPS(60);
@@ -42,6 +43,7 @@ int main() {
     }
 
     while (!WindowShouldClose()) {
+
         BeginDrawing();
         ClearBackground(SKYBLUE);
 
@@ -57,6 +59,7 @@ int main() {
         if (bird.update()) {
             game.restart(bird, pipes, pipeTexture);
         }
+
         bird.draw();
 
         for (auto &pipe: pipes) {
@@ -86,17 +89,6 @@ int main() {
 
         EndDrawing();
     }
-
-    UnloadFont(fnt);
-
-    UnloadTexture(birdTexture);
-    UnloadImage(birdImg);
-
-    UnloadTexture(pipeTexture);
-    UnloadImage(pipeImg);
-
-    UnloadTexture(backgroundTexture);
-    UnloadImage(backgroundImg);
 
     CloseWindow();
     return 0;
