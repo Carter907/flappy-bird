@@ -1,22 +1,26 @@
 #include "game.h"
-#include <vector>
+#include "pipe.h"
 #include "bird.h"
 
-void Game::restart(Bird *bird, std::vector<Rectangle> &pipes) {
+void Game::restart(Bird& bird, std::deque<Pipe> &pipes, const Texture & pipe_texture) {
     best_score = std::max(score, best_score);
     score = 0;
-    bird->die();
+    bird.die();
 
     pipes.clear();
 
     for (int i = 0; i < MAX_PIPES; i++) {
-        pipes.push_back(getRandomOpening(i));
+        auto p = Pipe {
+            getRandomOpening(i),
+            pipe_texture,
+        };
+        pipes.push_back(p);
     }
 }
 
-Rectangle getRandomOpening(int index) {
+Rectangle getRandomOpening(size_t idx) {
     return Rectangle{
-        START_OFFSET + index * (float) PIPE_PADDING,
+        START_OFFSET + idx * (float) PIPE_PADDING,
         (float) GetRandomValue(50, (SCREEN_HEIGHT - 80) - OPENING_HEIGHT),
         OPENING_WIDTH,
         OPENING_HEIGHT,

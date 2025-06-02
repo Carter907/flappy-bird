@@ -1,103 +1,88 @@
 #include "bird.h"
 #include "game.h"
+#include "pipe.h"
 #include <iostream>
 #include <raylib.h>
 #include <cstdio>
 #include <vector>
+#include <deque>
+
+#define SCORE_TEXT_LENGTH 30
+#define BEST_SCORE_TEXT_LENGTH 30
+
 
 int main() {
     InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "flappybird!");
     SetWindowMaxSize(SCREEN_WIDTH, SCREEN_HEIGHT);
     SetTargetFPS(60);
 
-    Font fnt = LoadFont("assets/UbuntuMono-B.ttf");
-    Image birdImg = LoadImage("assets/flappybird.png");
-    Image backgroundImg = LoadImage("assets/background.jpg");
-    Image pipeImg = LoadImage("assets/pipe.png");
+    const Font fnt = LoadFont("assets/UbuntuMono-B.ttf");
+    const Image birdImg = LoadImage("assets/flappybird.png");
+    const Image backgroundImg = LoadImage("assets/background.jpg");
+    const Image pipeImg = LoadImage("assets/pipe.png");
 
-    Texture2D birdTexture = LoadTextureFromImage(birdImg);
-    Texture2D backgroundTexture = LoadTextureFromImage(backgroundImg);
-    Texture2D pipeTexture = LoadTextureFromImage(pipeImg);
+    const Texture2D birdTexture = LoadTextureFromImage(birdImg);
+    const Texture2D backgroundTexture = LoadTextureFromImage(backgroundImg);
+    const Texture2D pipeTexture = LoadTextureFromImage(pipeImg);
 
-    char scoreText[30];
-    char bestScoreText[30];
+    char scoreText[SCORE_TEXT_LENGTH];
+    char bestScoreText[BEST_SCORE_TEXT_LENGTH];
 
-    Game * game = new Game();
-    Bird * bird = new Bird(birdTexture);
+    auto game = Game();
+    auto bird = Bird(birdTexture);
 
-    std::vector<Rectangle> pipes;
+    std::deque<Pipe> pipes;
 
     for (int i = 0; i < MAX_PIPES; i++) {
-        pipes.push_back(getRandomOpening(i));
+        auto p = Pipe {
+            getRandomOpening(i),
+            pipeTexture,
+        };
+        pipes.push_back(p);
     }
 
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(SKYBLUE);
 
-        DrawTextureEx(backgroundTexture, Vector2{0, -150}, 0, 0.8, WHITE);
+        DrawTextureEx(backgroundTexture, Vector2{0, -150}, 0, 0.8, WHITE); // draw background
 
-
-        if (bird->update()) {
-            game->restart(bird, pipes);
-        }
-        bird->draw();
-
-
-        for (auto &pipe: pipes) {
-            auto [x, y, width, height] = pipe;
-
-            if (BIRD_START_X + birdTexture.width * 0.15 >= x && BIRD_START_X <= x + width) {
-                if (bird->y_pos < y ||
-                    bird->y_pos + birdTexture.height * 0.15 >
-                    y + height) {
-                    game->restart(bird, pipes);
-                    continue;
-                }
-            }
-            DrawTexturePro(
-                pipeTexture,
-                Rectangle{
-                    0, 0, static_cast<float>(pipeTexture.width),
-                    static_cast<float>(pipeTexture.height)
-                },
-                Rectangle{x, y + OPENING_HEIGHT, OPENING_WIDTH, 500},
-                Vector2{0, 0}, 0, WHITE);
-
-            DrawTexturePro(
-                pipeTexture,
-                Rectangle{
-                    0, 0, static_cast<float>(pipeTexture.width),
-                    static_cast<float>(pipeTexture.height)
-                },
-                Rectangle{x + OPENING_WIDTH, y, OPENING_WIDTH, 500},
-                Vector2{0, 0}, 180, WHITE);
-
-            pipe.x -= PIPE_SPEED * GetFrameTime();
-        }
-
-
-        if (pipes.front().x + OPENING_WIDTH < 0) {
-            game->score++;
-
-            pipes.erase(pipes.begin());
-            const int prev_x = pipes.back().x;
-            Rectangle ran_pipe_opening = {
-                prev_x + static_cast<float>(PIPE_PADDING),
-                static_cast<float>(GetRandomValue(50, (SCREEN_HEIGHT - 80) - OPENING_HEIGHT)),
-                OPENING_WIDTH,
-                OPENING_HEIGHT,
-            };
-
-            pipes.push_back(ran_pipe_opening);
-        }
-
-        sprintf(scoreText, "score: %d", game->score);
-        sprintf(bestScoreText, "best: %d", game->best_score);
+        snprintf(scoreText, SCORE_TEXT_LENGTH, "score: %d", game.score);
+        snprintf(bestScoreText, BEST_SCORE_TEXT_LENGTH, "best: %d", game.best_score);
 
         DrawTextEx(fnt, scoreText, Vector2{0, 0}, 30, 0, GREEN);
         DrawTextEx(fnt, bestScoreText,
                    Vector2{static_cast<float>(MeasureText(scoreText, 30)), 0}, 30, 0, GREEN);
+
+        if (bird.update()) {
+            game.restart(bird, pipes, pipeTexture);
+        }
+        bird.draw();
+
+        for (auto &pipe: pipes) {
+
+            if (birdHitPipe(pipe, bird)) {
+                game.restart(bird, pipes, pipeTexture);
+                continue;
+            }
+
+            pipe.opening_bounds.x -= PIPE_SPEED * GetFrameTime();
+
+            pipe.draw();
+        }
+
+
+        if (pipes.front().opening_bounds.x + OPENING_WIDTH < 0) {
+
+            game.score++;
+            pipes.erase(pipes.begin());
+
+            auto new_pipe = Pipe {
+                getRandomOpening(pipes.size()-1),
+                pipeTexture,
+            };
+            pipes.push_back(new_pipe);
+        }
 
         EndDrawing();
     }
@@ -116,3 +101,5 @@ int main() {
     CloseWindow();
     return 0;
 }
+
+

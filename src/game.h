@@ -1,15 +1,13 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <deque>
 #include <raylib.h>
-#include <vector>
+#include <deque>
 
 #include "bird.h"
+#include "pipe.h"
 
-// amount of pipes in pipes vector
-#define MAX_PIPES 5
-// pipe speed measured in pixels per second
-#define PIPE_SPEED 300
 
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 450
@@ -29,11 +27,12 @@
 struct Game {
     int score = 0;
     int best_score = 0;
-    void restart(Bird *bird, std::vector<Rectangle> &pipes);
+    void restart(Bird& bird, std::deque<Pipe> &pipes, const Texture &pipe_texture);
 };
 
 // precondition: The index of the pipe on initialization of pipes vector
 // postcondition: A rectangle signifying the opening of each pair of pipes
-Rectangle getRandomOpening(int index);
+Rectangle getRandomOpening(size_t idx);
+
 
 #endif
